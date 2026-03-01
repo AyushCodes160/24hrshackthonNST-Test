@@ -15,23 +15,25 @@ npm run build
 echo ""
 echo "==== 2/4: Compiling Python Backend (PyInstaller) ===="
 cd backend
-# Make sure we have pyinstaller
+# Ensure all dependencies are present in the build environment
+pip install -r requirements.txt
 pip install pyinstaller
 
 # Run PyInstaller
-# --onedir creates a folder containing the executable and libraries
-# We use --add-data to firmly attach the models folder directly into the distribution array
+# We use --collect-all for mediapipe and transformers as they are complex with many data files
+# We ensure opencv-python is properly found
 pyinstaller --noconfirm --onedir \
     --name "api" \
     --add-data "models:models" \
+    --collect-all "mediapipe" \
+    --collect-all "transformers" \
+    --hidden-import "cv2" \
     --hidden-import "uvicorn" \
     --hidden-import "fastapi" \
     --hidden-import "websockets" \
-    --hidden-import "cv2" \
     --hidden-import "numpy" \
     --hidden-import "torch" \
     --hidden-import "torchvision" \
-    --hidden-import "transformers" \
     main.py
 
 echo "Python compilation finished."

@@ -4,7 +4,7 @@ websockets
 python-multipart
 pydantic
 numpy
-opencv-python-headless
+opencv-python
 mediapipe
 torch
 torchvision
