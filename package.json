@@ -11,7 +11,10 @@
       "output": "release"
     },
     "mac": {
-      "target": ["dmg"],
+      "target": {
+        "target": "dmg",
+        "arch": "universal"
+      },
       "hardenedRuntime": false,
       "gatekeeperAssess": false
     },
