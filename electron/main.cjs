@@ -69,9 +69,10 @@ function checkBackendHealth(onReady) {
 
     req.on("error", () => {
       if (Date.now() - startTime > timeoutMs) {
+        const logPath = path.join(app.getPath("userData"), "backend_debug.log");
         dialog.showErrorBox(
           "Connection Error",
-          "The DeepShield backend failed to initialize within the expected time. Please restart the application.",
+          `The DeepShield backend failed to initialize within the expected time.\n\nPlease check the logs for details: ${logPath}`,
         );
         app.quit();
       } else {
@@ -100,29 +101,67 @@ function startPythonBackend() {
 
   console.log(`Starting Python backend at: ${script}`);
   const backendDir = path.dirname(script);
+  const fs = require("fs");
+  const logPath = path.join(app.getPath("userData"), "backend_debug.log");
 
-  pythonProcess = spawn(script, ["--host", "127.0.0.1", "--port", "8005"], {
-    cwd: backendDir,
-    env: { ...process.env, PYTHONUNBUFFERED: "1" },
-  });
+  // Clear old logs
+  if (fs.existsSync(logPath)) fs.unlinkSync(logPath);
+  fs.appendFileSync(
+    logPath,
+    `[INIT] Starting Backend at ${new Date().toISOString()}\n`,
+  );
+  fs.appendFileSync(logPath, `[PATH] Script: ${script}\n`);
+  fs.appendFileSync(logPath, `[DIR] CWD: ${backendDir}\n`);
 
-  pythonProcess.stdout.on("data", (data) => {
-    console.log(`Python: ${data}`);
-  });
-
-  pythonProcess.stderr.on("data", (data) => {
-    console.error(`Python Error: ${data}`);
-  });
-
-  pythonProcess.on("close", (code) => {
-    console.log(`Python process exited with code ${code}`);
-    if (code !== 0 && code !== null) {
-      dialog.showErrorBox(
-        "Backend Error",
-        `The DeepShield backend process exited unexpectedly with code ${code}.`,
-      );
+  // Ensure the binary is executable (important for shared DMGs)
+  try {
+    if (process.platform !== "win32") {
+      fs.chmodSync(script, "755");
+      fs.appendFileSync(logPath, `[PERM] Applied chmod 755 to ${script}\n`);
     }
-  });
+  } catch (err) {
+    fs.appendFileSync(logPath, `[PERM_ERROR] ${err.message}\n`);
+  }
+
+  try {
+    pythonProcess = spawn(script, ["--host", "127.0.0.1", "--port", "8005"], {
+      cwd: backendDir,
+      env: { ...process.env, PYTHONUNBUFFERED: "1" },
+    });
+
+    pythonProcess.stdout.on("data", (data) => {
+      const msg = data.toString();
+      console.log(`Python: ${msg}`);
+      fs.appendFileSync(logPath, `[STDOUT] ${msg}`);
+    });
+
+    pythonProcess.stderr.on("data", (data) => {
+      const msg = data.toString();
+      console.error(`Python Error: ${msg}`);
+      fs.appendFileSync(logPath, `[STDERR] ${msg}`);
+    });
+
+    pythonProcess.on("error", (err) => {
+      console.error("Failed to start backend process:", err);
+      fs.appendFileSync(logPath, `[SPAWN_ERROR] ${err.message}\n`);
+    });
+
+    pythonProcess.on("close", (code) => {
+      console.log(`Python process exited with code ${code}`);
+      fs.appendFileSync(
+        logPath,
+        `[EXIT] Code ${code} at ${new Date().toISOString()}\n`,
+      );
+      if (code !== 0 && code !== null) {
+        dialog.showErrorBox(
+          "Backend Engine Error",
+          `The analysis engine exited unexpectedly (Code: ${code}).\n\nPlease check the logs for details: ${logPath}`,
+        );
+      }
+    });
+  } catch (err) {
+    fs.appendFileSync(logPath, `[FATAL] ${err.message}\n`);
+  }
 }
 
 app.whenReady().then(() => {
