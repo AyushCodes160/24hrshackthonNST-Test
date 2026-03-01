@@ -17,7 +17,12 @@ function createWindow() {
   });
 
   // Load the compiled React frontend
-  mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
+  const isPackaged = app.isPackaged;
+  if (isPackaged) {
+    mainWindow.loadFile(path.join(app.getAppPath(), "dist/index.html"));
+  } else {
+    mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
+  }
 
   mainWindow.on("closed", function () {
     mainWindow = null;
@@ -26,7 +31,14 @@ function createWindow() {
 
 function startPythonBackend() {
   // In production, the python executable is packaged alongside the app in a specific Resources folder
-  let script = path.join(__dirname, "../backend/dist/api/api");
+  let script;
+  const isPackaged = app.isPackaged;
+  if (isPackaged) {
+    // When packaged,Resources is one level up from the app.asar
+    script = path.join(process.resourcesPath, "backend/dist/api/api");
+  } else {
+    script = path.join(__dirname, "../backend/dist/api/api");
+  }
 
   // If running on windows, the executable has a .exe extension
   if (process.platform === "win32") {
@@ -34,7 +46,12 @@ function startPythonBackend() {
   }
 
   console.log(`Starting Python backend at: ${script}`);
-  pythonProcess = spawn(script, ["--host", "127.0.0.1", "--port", "8005"]);
+  const backendDir = path.dirname(script);
+
+  pythonProcess = spawn(script, ["--host", "127.0.0.1", "--port", "8005"], {
+    cwd: backendDir,
+    env: { ...process.env, PYTHONUNBUFFERED: "1" },
+  });
 
   pythonProcess.stdout.on("data", (data) => {
     console.log(`Python: ${data}`);

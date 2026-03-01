@@ -11,8 +11,11 @@
       "output": "release"
     },
     "mac": {
-      "target": ["dmg"]
+      "target": ["dmg"],
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
     },
+    "asar": true,
     "files": [
       "dist/**/*",
       "electron/**/*",

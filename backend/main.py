@@ -90,4 +90,16 @@ dist_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dist")
 if os.path.exists(dist_path):
     app.mount("/", StaticFiles(directory=dist_path, html=True), name="static")
 else:
-    print(f"Warning: Frontend build directory not found at {dist_path}. Run 'npm run build' first.")
+    print(f"Warning: Frontend build directory not found at {dist_path}")
+
+if __name__ == "__main__":
+    import uvicorn
+    import argparse
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=8005)
+    args = parser.parse_args()
+    
+    print(f"Starting FastAPI server at http://{args.host}:{args.port}")
+    uvicorn.run(app, host=args.host, port=args.port)

@@ -65,7 +65,7 @@ const VideoFeed = ({ mode, onModeChange, isAnalyzing, onAnalyzeToggle, onAnalysi
         wsBaseUrl = "ws://127.0.0.1:8005";
       } else {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        wsBaseUrl = import.meta.env.PROD ? `${protocol}//${window.location.host}` : "ws://localhost:8000";
+        wsBaseUrl = import.meta.env.PROD ? `${protocol}//${window.location.host}` : "ws://localhost:8005";
       }
       wsRef.current = new WebSocket(`${wsBaseUrl}/ws/stream?mode=${analysisMode}`);
       

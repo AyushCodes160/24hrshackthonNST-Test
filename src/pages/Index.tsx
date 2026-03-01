@@ -11,8 +11,13 @@ import TimelineGraph from "@/components/TimelineGraph";
 
 const Index = () => {
   const [mode, setMode] = useState<"webcam" | "upload_faceswap" | "upload_ai">("webcam");
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  const wsUrl = import.meta.env.PROD ? `${protocol}//${window.location.host}` : "ws://localhost:8000";
+  let wsUrl;
+  if (window.location.protocol === "file:") {
+    wsUrl = "ws://127.0.0.1:8005";
+  } else {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    wsUrl = import.meta.env.PROD ? `${protocol}//${window.location.host}` : "ws://localhost:8005";
+  }
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [cnnScore, setCnnScore] = useState(0);
   const [fftScore, setFftScore] = useState(0);
