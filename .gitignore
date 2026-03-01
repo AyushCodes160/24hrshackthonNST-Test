@@ -32,3 +32,12 @@ backend/models/weights/ai_vs_deepfake_vs_real/
 *.pyc
 *.pth
 *.bin
+
+# Build Artifacts
+backend/build/
+backend/dist/
+backend/*.spec
+release/
+node_modules/
+dist/
+dist-ssr/
