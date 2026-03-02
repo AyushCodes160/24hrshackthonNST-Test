@@ -132,11 +132,12 @@ erDiagram
 - _Users Table_: `user_id`, `username`, `hashed_password`, `role`.
 - _AuditLogs Table_: `log_id`, `timestamp`, `user_id`, `detection_mode` (Webcam/Upload), `final_risk_score`.
 
-### ER Diagram Description
+### ER Diagram Description (Current Privacy Pivot)
 
-To maintain our strict _100% Offline Privacy Guarantee_, we use **Local MongoDB (Community Server)** running exclusively on `localhost:27017` (No MongoDB Atlas Cloud).
+To maintain our strict _100% Offline Privacy Guarantee_, we have currently **suspended Audit Logging** and the Local MongoDB dependency.
 
-This database is used strictly for User Authentication (login credentials for security guards/journalists) and Audit Logging (recording when a scan happened and the final score). _Video frames and image data are NEVER saved to the database._ They are processed in memory and instantly destroyed to ensure complete privacy.
+**Wait, Why?**
+While the architecture supports Local MongoDB for User Authentication and Audit Logging, we are evaluating a **"Zero-Footprint"** privacy model. By not logging scans at all, we ensure that no trace of the user's media or detection history ever exists on the disk. For the current release, all data is processed strictly in volatile RAM and destroyed instantly.
 
 ---
 
